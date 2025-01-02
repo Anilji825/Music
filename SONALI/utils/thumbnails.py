@@ -1,67 +1,15 @@
-import os
-import re
-import aiofiles
-import aiohttp
-from PIL import Image, ImageDraw, ImageEnhance, ImageFilter, ImageFont
+from config import YOUTUBE_IMG_URL
 from youtubesearchpython.__future__ import VideosSearch
-
-def changeImageSize(maxWidth, maxHeight, image):
-    widthRatio = maxWidth / image.size[0]
-    heightRatio = maxHeight / image.size[1]
-    newWidth = int(widthRatio * image.size[0])
-    newHeight = int(heightRatio * image.size[1])
-    newImage = image.resize((newWidth, newHeight))
-    return newImage
-
-
-def truncate(text):
-    words = text.split(" ")
-    text1 = ""
-    text2 = ""
-    for word in words:
-        if len(text1) + len(word) < 30:
-            text1 += " " + word
-        elif len(text2) + len(word) < 30:
-            text2 += " " + word
-
-    text1 = text1.strip()
-    text2 = text2.strip()
-    return [text1, text2]
-
-
-def crop_center_circle(img, output_size, border, crop_scale=1.5):
-    half_width = img.size[0] / 2
-    half_height = img.size[1] / 2
-    larger_size = int(output_size * crop_scale)
-    img = img.crop(
-        (
-            half_width - larger_size / 2,
-            half_height - larger_size / 2,
-            half_width + larger_size / 2,
-            half_height + larger_size / 2,
-        )
-    )
-
-    img = img.resize((output_size - 2 * border, output_size - 2 * border))
-
-    final_img = Image.new("RGBA", (output_size, output_size), "pink")
-
-    mask_main = Image.new("L", (output_size - 2 * border, output_size - 2 * border), 0)
-    draw_main = ImageDraw.Draw(mask_main)
-    draw_main.ellipse((0, 0, output_size - 2 * border, output_size - 2 * border), fill=255)
-
-    final_img.paste(img, (border, border), mask_main)
-
-    mask_border = Image.new("L", (output_size, output_size), 0)
-    draw_border = ImageDraw.Draw(mask_border)
-    draw_border.ellipse((0, 0, output_size, output_size), fill=255)
-
-    result = Image.composite(final_img, Image.new("RGBA", final_img.size, (0, 0, 0, 0)), mask_border)
-
-    return result
-
-
-async def get_thumb(videoid):
+async def get_qthumb(vidid):
+    try:
+        query = f"https://www.youtube.com/watch?v={vidid}"
+        results = VideosSearch(query, limit=1)
+        for result in (await results.next())["result"]:
+            thumbnail = result["thumbnails"][0]["url"].split("?")[0]
+        return thumbnail
+    except Exception as e:
+        return YOUTUBE_IMG_URL
+        async def get_thumb(videoid):
     if os.path.isfile(f"cache/{videoid}_v4.png"):
         return f"cache/{videoid}_v4.png"
 
@@ -135,7 +83,7 @@ async def get_thumb(videoid):
             draw.text((text_x_position, 400), "00:00", (255, 255, 255), font=arial)
             draw.text((1080, 400), duration, (255, 255, 255), font=arial)
 
-            play_icons = Image.open("SONALI/assets/play_icons.png")
+            play_icons = Image.open("TanuMusic/assets/play_icons.png")
             play_icons = play_icons.resize((580, 62))
             background.paste(play_icons, (text_x_position, 450), play_icons)
 
@@ -149,3 +97,4 @@ async def get_thumb(videoid):
     except Exception as e:
         print(f"Error in get_thumb: {e}")
         raise
+        

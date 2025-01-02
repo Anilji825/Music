@@ -1,4 +1,3 @@
-from youtubesearchpython.__future__ import VideosSearch
 import os
 import re
 import aiofiles
